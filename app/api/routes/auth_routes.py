@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from app.api.dependencies.dependencies import get_current_user, get_user_repository
+from app.api.dependencies.user_dependencies import get_current_user, get_user_repository
 from app.models.user_model import User
 from app.repository.user_repository import UserRepository
 from app.schema.auth_schema import Token, UserCreate, UserResponse

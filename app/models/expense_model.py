@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from enum import Enum
 from typing import TYPE_CHECKING
 
 from app.config.database import Base
 
-#from app.models.user_model import User
-from sqlalchemy import ForeignKey, String, Text
+# from app.models.user_model import User
+from sqlalchemy import ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -28,6 +29,8 @@ class Expense(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
 
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    amount: Mapped[Decimal] = mapped_column(Numeric(12,2), nullable=False)
 
     category: Mapped[ExpenseCategory] = mapped_column(default=ExpenseCategory.OTHER, nullable=False)
 
