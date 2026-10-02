@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from app.api.dependencies import get_current_user, get_user_repository
+from app.api.dependencies.dependencies import get_current_user, get_user_repository
 from app.models.user_model import User
 from app.repository.user_repository import UserRepository
 from app.schema.auth_schema import Token, UserCreate, UserResponse
@@ -20,7 +20,7 @@ def register(data: UserCreate, service: Annotated[AuthService, Depends(get_auth_
 @router.post("/login", response_model=Token,)
 def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], service: Annotated[AuthService, Depends(get_auth_service)],):
     access_token = service.login(email=form_data.username, password=form_data.password)
-    return Token(access_token=access_token, token_type="bearer",)
+    return Token(access_token=access_token, token_type="bearer")
 
 @router.get("/me", response_model=UserResponse,)
 def get_me(current_user: Annotated[User , Depends(get_current_user)]):

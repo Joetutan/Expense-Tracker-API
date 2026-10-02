@@ -1,10 +1,12 @@
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from app.config.database import Base
-from app.models.expense_model import Expense
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+if TYPE_CHECKING:
+    from app.models.expense_model import Expense
 
 class User(Base):
     __tablename__ = "users"
@@ -19,4 +21,4 @@ class User(Base):
 
     created_at: Mapped[datetime] = mapped_column(default=datetime.now(UTC), nullable=False)
 
-    tasks: Mapped[list["Expense"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    expenses: Mapped[list["Expense"]] = relationship(back_populates="user", cascade="all, delete-orphan")
