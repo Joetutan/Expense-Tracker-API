@@ -1,15 +1,37 @@
-from app.models import Expense, ExpenseCategory
+from app.models import ExpenseCategory
 from app.repository.expense_repository import ExpenseRepository
-from app.schema.expense_schema import ExpenseCreate, ExpenseUpdate
+from app.schema.expense_schema import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 
 
 class ExpenseService:
     def __init__(self, repository: ExpenseRepository) -> None:
         self.repository = repository
 
-    def create_expense(self, data: ExpenseCreate, user_id:int) -> Expense:
-        return self.repository.create(data=data, user_id=user_id)
-
-    def get_expense(self, expense_id: int, user_id: int) -> Expense | None:
-        return self.repository.get_by_id(expense_id=expense_id, user_id=user_id)
+    def create_expense(self, data: ExpenseCreate, user_id:int) -> ExpenseResponse:
+        expense = self.repository.create(user_id=user_id, data=data)
+        return ExpenseResponse.model_validate(expense)
     
+    def get_expense(self, user_id: int, expense_id: int) -> ExpenseResponse | None:
+        expense = self.repository.get_by_id(user_id=user_id, expense_id=expense_id)
+        if expense is None:
+            return None
+        return ExpenseResponse.model_validate(expense)
+
+    def list_expenses(self, user_id:int, category: ExpenseCategory | None = None) -> list[ExpenseResponse]:
+        expenses = self.repository.get_all(user_id=user_id, category=category)
+        return [ExpenseResponse.model_validate(expense) for expense in expenses]
+
+    def update_expense(self, user_id:int, expense_id:int, data:ExpenseUpdate) -> ExpenseResponse:
+        expense = self.repository.get_by_id(expense_id=expense_id, user_id=user_id)
+        updates = data.model_dump(exclude_unset=True)
+        for field , value in updates.items():
+            setattr(expense, field, value)
+        self.repository.update(expense)
+        return ExpenseResponse.model_validate(expense)
+
+    def delete_expense(self, user_id:int, expense_id: int)->ExpenseResponse:
+        expense = self.repository.get_by_id(expense_id=expense_id,user_id=user_id)
+        self.repository.delete(expense)
+        if expense is None:  # noqa: SIM103
+            return False
+        return True

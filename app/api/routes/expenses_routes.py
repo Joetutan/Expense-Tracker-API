@@ -1,12 +1,16 @@
 from typing import Annotated
 
+from app.api.dependencies import get_current_user
 from app.config.database import get_db
-from app.repository.expense_repository import ExpenseRepository
-from app.service.expense_service import ExpenseService
-from app.api.dependencies import get_current_user, get_user_repository
-from app.schema.expense_schema import ExpenseResponse, ExpenseCreate
-from app.models.expense_model import Expense
 from app.models.user_model import User
+from app.repository.expense_repository import ExpenseRepository
+from app.schema.expense_schema import (
+    ExpenseCategory,
+    ExpenseCreate,
+    ExpenseResponse,
+    ExpenseUpdate,
+)
+from app.service.expense_service import ExpenseService
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -25,13 +29,36 @@ def create_expense(
 
 @router.get("/{expense_id}", response_model=ExpenseResponse)
 def get_expense(
-    expense_id:int,
-    current_user: Annotated[User, Depends(get_current_user)],
-    service: Annotated[ExpenseService, Depends(get_expense_service)]) -> ExpenseResponse:
+        expense_id:int,
+        current_user: Annotated[User, Depends(get_current_user)],
+        service: Annotated[ExpenseService, Depends(get_expense_service)]) -> ExpenseResponse:
+        expense = service.get_expense(user_id=current_user.id, expense_id=expense_id )
+        if expense is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
+        return expense
 
-    expense = service.get_expense(expense_id=expense_id, user_id=current_user.id)
+@router.get("",response_model=list[ExpenseResponse])
+def list_expenses(
+        current_user: Annotated[User, Depends(get_current_user)],
+        service: Annotated[ExpenseService ,Depends(get_expense_service)],
+        expense_category: ExpenseCategory | None = None
+        )->list[ExpenseResponse]:
+    return service.list_expenses(user_id=current_user.id, category=expense_category)
 
-    if expense is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
+@router.patch("/{expense_id}", response_model=ExpenseResponse)
+def update_expense(current_user: Annotated[User, Depends(get_current_user)],
+                   expense_id: int,
+                   service: Annotated[ExpenseService, Depends(get_expense_service)],
+                   data:ExpenseUpdate) -> ExpenseResponse:
 
-    return expense
+    return service.update_expense(user_id=current_user.id, expense_id=expense_id, data=data)
+
+@router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_expense(current_user: Annotated[User, Depends(get_current_user)],
+                   expense_id:int,
+                   service: Annotated[ExpenseService, Depends(get_expense_service)])-> None:
+     deleted = service.delete_expense(user_id=current_user, expense_id=expense_id)
+
+     if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    
