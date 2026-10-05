@@ -1,6 +1,11 @@
 from app.models import ExpenseCategory
 from app.repository.expense_repository import ExpenseRepository
-from app.schema.expense_schema import ExpenseCreate, ExpenseResponse, ExpenseUpdate
+from app.schema.expense_schema import (
+    ExpenseCreate,
+    ExpenseFilter,
+    ExpenseResponse,
+    ExpenseUpdate,
+)
 
 
 class ExpenseService:
@@ -17,8 +22,8 @@ class ExpenseService:
             return None
         return ExpenseResponse.model_validate(expense)
 
-    def list_expenses(self, user_id:int, category: ExpenseCategory | None = None) -> list[ExpenseResponse]:
-        expenses = self.repository.get_all(user_id=user_id, category=category)
+    def list_expenses(self, user_id:int,filter= ExpenseFilter | None ) -> list[ExpenseResponse]:
+        expenses = self.repository.get_all(user_id=user_id, filter=filter)
         return [ExpenseResponse.model_validate(expense) for expense in expenses]
 
     def update_expense(self, user_id:int, expense_id:int, data:ExpenseUpdate) -> ExpenseResponse:

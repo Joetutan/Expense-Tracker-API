@@ -5,8 +5,8 @@ from app.config.database import get_db
 from app.models.user_model import User
 from app.repository.expense_repository import ExpenseRepository
 from app.schema.expense_schema import (
-    ExpenseCategory,
     ExpenseCreate,
+    ExpenseFilter,
     ExpenseResponse,
     ExpenseUpdate,
 )
@@ -41,9 +41,9 @@ def get_expense(
 def list_expenses(
         current_user: Annotated[User, Depends(get_current_user)],
         service: Annotated[ExpenseService ,Depends(get_expense_service)],
-        expense_category: ExpenseCategory | None = None
+        expense_filter: Annotated[ExpenseFilter, Depends()],
         )->list[ExpenseResponse]:
-    return service.list_expenses(user_id=current_user.id, category=expense_category)
+    return service.list_expenses(user_id=current_user.id, filter=expense_filter)
 
 @router.patch("/{expense_id}", response_model=ExpenseResponse)
 def update_expense(current_user: Annotated[User, Depends(get_current_user)],

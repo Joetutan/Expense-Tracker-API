@@ -1,5 +1,8 @@
-from app.models import Expense, ExpenseCategory
-from app.schema.expense_schema import ExpenseCreate
+from datetime import datetime, time, timedelta, timezone
+
+from app.models import Expense
+from app.schema.expense_schema import ExpenseCreate, ExpenseFilter
+from app.utils.date_util import get_date_range
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -19,13 +22,28 @@ class ExpenseRepository:
         statement = select(Expense).where(Expense.id ==expense_id, Expense.user_id == user_id)
         return self.db.scalar(statement)
     
-    def get_all(self, user_id:int, category: ExpenseCategory | None = None)-> list[Expense]:
+    def get_all(self, user_id:int, filter: ExpenseFilter | None = None)-> list[Expense]:
         statement = select(Expense).where(Expense.user_id == user_id)
-        if category is not None:
-            statement = statement.where(Expense.category == category)
+
+        if filter is not None:
+
+            if filter.category is not None:
+                statement = statement.where(Expense.category == filter.category)
+
+            if filter.timeline is not None:
+                start , end = get_date_range(filter.timeline)
+                statement = statement.where(Expense.created_at >= start, Expense.created_at <= end)
+
+            if filter.start is not None and filter.end is not None:
+
+                start = datetime.combine(filter.start, time.min, tzinfo=timezone.utc)
+
+                end = datetime.combine(filter.end + timedelta(days=1), time.min, tzinfo=timezone.utc)
+            
+                statement = statement.where(Expense.created_at >= start, Expense.created_at < end)
+
         statement = statement.order_by(Expense.created_at.desc())
         return list(self.db.scalars(statement).all())
-    
 
     def update(self,expense:Expense)->Expense:
         self.db.commit()
