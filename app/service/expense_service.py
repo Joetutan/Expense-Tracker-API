@@ -27,7 +27,7 @@ class ExpenseService:
         return [ExpenseResponse.model_validate(expense) for expense in expenses]
 
     def update_expense(self, user_id:int, expense_id:int, data:ExpenseUpdate) -> ExpenseResponse:
-        expense = self.repository.get_by_id(expense_id=expense_id, user_id=user_id)
+        expense = self.repository.get_by_id(user_id=user_id,expense_id=expense_id)
         updates = data.model_dump(exclude_unset=True)
         for field , value in updates.items():
             setattr(expense, field, value)
@@ -35,8 +35,6 @@ class ExpenseService:
         return ExpenseResponse.model_validate(expense)
 
     def delete_expense(self, user_id:int, expense_id: int)->ExpenseResponse:
-        expense = self.repository.get_by_id(expense_id=expense_id,user_id=user_id)
+        expense = self.repository.get_by_id(user_id=user_id, expense_id=expense_id)
         self.repository.delete(expense)
-        if expense is None:  # noqa: SIM103
-            return False
-        return True
+        return expense is not None

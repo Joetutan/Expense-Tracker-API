@@ -19,7 +19,7 @@ class ExpenseRepository:
         return expense
 
     def get_by_id(self, user_id:int, expense_id:int ) -> Expense | None:
-        statement = select(Expense).where(Expense.id ==expense_id, Expense.user_id == user_id)
+        statement = select(Expense).where(Expense.user_id == user_id, Expense.id ==expense_id )
         return self.db.scalar(statement)
     
     def get_all(self, user_id:int, filter: ExpenseFilter | None = None)-> list[Expense]:

@@ -57,7 +57,7 @@ def update_expense(current_user: Annotated[User, Depends(get_current_user)],
 def delete_expense(current_user: Annotated[User, Depends(get_current_user)],
                    expense_id:int,
                    service: Annotated[ExpenseService, Depends(get_expense_service)])-> None:
-     deleted = service.delete_expense(user_id=current_user, expense_id=expense_id)
+     deleted = service.delete_expense(user_id=current_user.id, expense_id=expense_id)
 
      if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")

@@ -21,13 +21,14 @@ class ExpenseUpdate(BaseModel):
 
 class ExpenseResponse(BaseModel):
         id: int
-        user_id: int
+        #user_id: int
         title: str
         note: str | None
         amount: Decimal 
         category: ExpenseCategory
         created_at: datetime
-        updated_at: datetime
+        #updated_at: datetime
+
         model_config = ConfigDict(from_attributes=True)
 
 class TimeLine(str, Enum):
